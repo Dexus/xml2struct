@@ -1,16 +1,46 @@
 package xml2struct
 
 import (
+	"bytes"
 	"container/list"
 	"encoding/xml"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Ele struct {
 	Name  string
 	child map[string]int //count the child number
+}
+
+func GenerateStruct(res map[string]map[string]int, prefix string, pt *os.File) string {
+	buffer := bytes.NewBufferString("")
+
+	for PNode, v := range res {
+		fmt.Printf("cur hand " + PNode + "\n")
+		line1 := fmt.Sprintf("type %s%s struct{\n", prefix, strings.Title(PNode))
+
+		pt.WriteString(line1)
+		line2 := fmt.Sprintf("\t%-20s\txml.Name `xml:\"%s\"`\n", "XMLName", PNode)
+		pt.WriteString(line2)
+		for S, v1 := range v {
+			var line string
+			if v1 == 1 {
+				line = fmt.Sprintf("\t%-20s\t%s%s\t`xml:\"%s\"`\n", strings.Title(S), prefix, strings.Title(S), S)
+			} else {
+				line = fmt.Sprintf("\t%-20s\t[]%s%s\t`xml:\"%s\"`\n", strings.Title(S), prefix, strings.Title(S), S)
+			}
+
+			pt.WriteString(line)
+
+		}
+
+		pt.WriteString("}\n")
+
+	}
+	return buffer.String()
 }
 
 func Parserxml(f string) (r map[string]map[string]int) {
