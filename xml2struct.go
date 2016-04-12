@@ -43,9 +43,9 @@ func GenerateStruct(res map[string]map[string]int, prefix string, pt *os.File) s
 	return buffer.String()
 }
 
-func Parserxml(f string) (r map[string]map[string]int) {
+func Parserxml(f string) (r map[string]interface{}) {
 
-	var res map[string]map[string]int = make(map[string]map[string]int)
+	var res map[string]interface{} = make(map[string]interface{})
 
 	flag.Parse()
 
@@ -54,6 +54,7 @@ func Parserxml(f string) (r map[string]map[string]int) {
 		fmt.Println("Error opening file:", err)
 		return
 	}
+
 	defer xmlFile.Close()
 	//A Token is an interface holding one of the token types: StartElement,
 	// EndElement, CharData, Comment, ProcInst, or Directive.
@@ -95,15 +96,28 @@ func Parserxml(f string) (r map[string]map[string]int) {
 			last := l.Back()
 
 			if inst, ok := last.Value.(Ele); ok {
-				_, ok := res[inst.Name]
-				if !ok {
 
-					res[inst.Name] = make(map[string]int)
+				inst1, ok1 := res[inst.Name].(Ele)
+
+				if ok && ok1 { // existsing,need merge
+					for i, k := range inst.child {
+						if k == 2 {
+							inst1.child[i] = k
+						}
+
+						//inst1.child[i]
+					}
+
+				} else { //exist merge into res
+					res[inst.Name] = last.Value
 				}
 
-				for k, v := range inst.child {
-					res[inst.Name][k] = v
-				}
+				/*
+					for k, v := range inst.child {
+						if inst1, ok := last.Value.(Ele); ok {
+							inst1.
+						}
+				}*/
 
 			}
 			l.Remove(last)
