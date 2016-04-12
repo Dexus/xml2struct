@@ -12,7 +12,8 @@ import (
 
 type Ele struct {
 	Name  string
-	child map[string]int //count the child number
+	child map[string]int   //count the child number
+	attr  map[xml.Name]int //
 }
 
 func GenerateStruct(res map[string]interface{}, prefix string, pt *os.File) string {
@@ -27,6 +28,8 @@ func GenerateStruct(res map[string]interface{}, prefix string, pt *os.File) stri
 			pt.WriteString(line1)
 			line2 := fmt.Sprintf("\t%-20s\txml.Name `xml:\"%s\"`\n", "XMLName", PNode)
 			pt.WriteString(line2)
+
+			//generate child node string
 			for S, v1 := range inst1.child {
 				var line string
 				if v1 == 1 {
@@ -35,6 +38,15 @@ func GenerateStruct(res map[string]interface{}, prefix string, pt *os.File) stri
 					line = fmt.Sprintf("\t%-20s\t[]%s%s\t`xml:\"%s\"`\n", strings.Title(S), prefix, strings.Title(S), S)
 				}
 
+				pt.WriteString(line)
+
+			}
+			//generate attr node string
+			for S, _ := range inst1.attr {
+
+				var line string
+
+				line = fmt.Sprintf("\t%-20s\t%s%s\t`xml:\"%s,attr\"`\n", strings.Title(S.Local), prefix, strings.Title(S.Local), S.Local)
 				pt.WriteString(line)
 
 			}
@@ -79,6 +91,11 @@ func Parserxml(f string) (r map[string]interface{}) {
 
 			e.Name = se.Name.Local
 			e.child = make(map[string]int)
+			e.attr = make(map[xml.Name]int)
+
+			for i, k := range se.Attr {
+				e.attr[k.Name] = i
+			}
 
 			if l.Len() > 0 {
 				var lname string
