@@ -22,7 +22,7 @@ func GenerateStruct(res map[string]interface{}, prefix string, pt *os.File) stri
 	for PNode, v := range res {
 		inst1, ok := v.(Ele)
 		if ok {
-			fmt.Printf("cur hand " + PNode + "\n")
+			fmt.Printf("//cur hand " + PNode + "\n")
 			line1 := fmt.Sprintf("type %s%s struct{\n", prefix, strings.Title(PNode))
 
 			pt.WriteString(line1)
@@ -49,8 +49,8 @@ func GenerateStruct(res map[string]interface{}, prefix string, pt *os.File) stri
 
 				var line string
 
-				line = fmt.Sprintf("\t%-20s\t%s%s\t`xml:\"%s %s,attr\"`\n",
-					strings.Title(S.Local), prefix, strings.Title(S.Local), S.Space, S.Local)
+				line = fmt.Sprintf("\t%-20s\t %s\t`xml:\"%s %s,attr\"`\n",
+					strings.Title(S.Local), "string", S.Space, S.Local)
 				pt.WriteString(line)
 
 			}
