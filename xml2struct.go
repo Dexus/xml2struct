@@ -11,8 +11,8 @@ import (
 )
 
 type Ele struct {
-	Name  string
-	child map[string]int   //count the child number
+	xml.Name
+	child map[xml.Name]int //count the child number
 	attr  map[xml.Name]int //
 }
 
@@ -26,16 +26,19 @@ func GenerateStruct(res map[string]interface{}, prefix string, pt *os.File) stri
 			line1 := fmt.Sprintf("type %s%s struct{\n", prefix, strings.Title(PNode))
 
 			pt.WriteString(line1)
-			line2 := fmt.Sprintf("\t%-20s\txml.Name `xml:\"%s\"`\n", "XMLName", PNode)
+			line2 := fmt.Sprintf("\t%-20s\txml.Name `xml:\"%s %s\"`\n",
+				"XMLName", inst1.Name.Space, PNode)
 			pt.WriteString(line2)
 
 			//generate child node string
 			for S, v1 := range inst1.child {
 				var line string
 				if v1 == 1 {
-					line = fmt.Sprintf("\t%-20s\t%s%s\t`xml:\"%s\"`\n", strings.Title(S), prefix, strings.Title(S), S)
+					line = fmt.Sprintf("\t%-20s\t%s%s\t`xml:\"%s %s\"`\n",
+						strings.Title(S.Local), prefix, strings.Title(S.Local), S.Space, S.Local)
 				} else {
-					line = fmt.Sprintf("\t%-20s\t[]%s%s\t`xml:\"%s\"`\n", strings.Title(S), prefix, strings.Title(S), S)
+					line = fmt.Sprintf("\t%-20s\t[]%s%s\t`xml:\"%s %s\"`\n",
+						strings.Title(S.Local), prefix, strings.Title(S.Local), S.Space, S.Local)
 				}
 
 				pt.WriteString(line)
@@ -46,7 +49,8 @@ func GenerateStruct(res map[string]interface{}, prefix string, pt *os.File) stri
 
 				var line string
 
-				line = fmt.Sprintf("\t%-20s\t%s%s\t`xml:\"%s,attr\"`\n", strings.Title(S.Local), prefix, strings.Title(S.Local), S.Local)
+				line = fmt.Sprintf("\t%-20s\t%s%s\t`xml:\"%s %s,attr\"`\n",
+					strings.Title(S.Local), prefix, strings.Title(S.Local), S.Space, S.Local)
 				pt.WriteString(line)
 
 			}
@@ -89,8 +93,8 @@ func Parserxml(f string) (r map[string]interface{}) {
 		case xml.StartElement:
 			var e Ele
 
-			e.Name = se.Name.Local
-			e.child = make(map[string]int)
+			e.Name = se.Name
+			e.child = make(map[xml.Name]int)
 			e.attr = make(map[xml.Name]int)
 
 			for i, k := range se.Attr {
@@ -98,14 +102,12 @@ func Parserxml(f string) (r map[string]interface{}) {
 			}
 
 			if l.Len() > 0 {
-				var lname string
-				var curnum int
+
 				if inst, ok := l.Back().Value.(Ele); ok {
 					inst.child[e.Name]++
-					lname = inst.Name
-					curnum = inst.child[e.Name]
+
 				}
-				fmt.Printf("size:%d %s %s %d\n", l.Len(), lname, e.Name, curnum)
+				//	fmt.Printf("size:%d %s %s %d\n", l.Len(), lname, e.Name, curnum)
 			}
 
 			l.PushBack(e)
@@ -116,7 +118,7 @@ func Parserxml(f string) (r map[string]interface{}) {
 
 			if inst, ok := last.Value.(Ele); ok {
 
-				inst1, ok1 := res[inst.Name].(Ele)
+				inst1, ok1 := res[inst.Name.Local].(Ele)
 
 				if ok && ok1 { // existsing,need merge
 					for i, k := range inst.child {
@@ -128,7 +130,7 @@ func Parserxml(f string) (r map[string]interface{}) {
 					}
 
 				} else { //exist merge into res
-					res[inst.Name] = last.Value
+					res[inst.Name.Local] = last.Value
 				}
 
 				/*

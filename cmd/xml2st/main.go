@@ -6,7 +6,7 @@ import "os"
 
 func main() {
 	fmt.Printf("asfsafa")
-	res := xml2struct.Parserxml("../document.xml")
+	res := xml2struct.Parserxml("../../document.xml")
 	restring := xml2struct.GenerateStruct(res, "Word", os.Stdout)
 	fmt.Print(restring)
 }
